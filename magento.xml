@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <menuitem id="menu_magento" name="Magento"
+            sequence="70" groups="base.group_user"/>
+        <menuitem id="menu_magento_config" name="Configuration" sequence="50"
+            parent="menu_magento" groups="base.group_user"/>
+
+        <!--Instance-->
+        <record id="magento_instance_tree_view" model="ir.ui.view">
+            <field name="name">magento.instance.tree</field>
+            <field name="model">magento.instance</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="Magento Instances">
+                    <field name="name"/>
+                    <field name="url"/>
+                    <field name="active"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="magento_instance_form_view" model="ir.ui.view">
+            <field name="name">magento.instance.form</field>
+            <field name="model">magento.instance</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Magento Instance" version="7.0">
+                    <header>
+                        <button name="%(action_magento_test_connection)d" 
+                                type='action' class="oe_highlight" string='Test Connection'/>
+                        <button name="%(action_magento_import_websites)d" 
+                                type='action' class="oe_highlight" string='Import Websites'/>
+                        <button name="%(action_magento_import_carriers)d"
+                                type='action' class="oe_highlight" string='Import Carriers / Shipping Methods'/>
+
+                        <button name="import_order_states"
+                            string="Import order states" type="object"
+                            groups="base.group_user"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <div class="oe_edit_only">
+                                <label for="name" string="Name"/>
+                            </div>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                            <separator colspan="4"/>
+                            <label for="company"/>
+                            <h3><field name="company"/></h3>
+                            <label for="active"/>
+                            <h3><field name="active"/></h3>
+                        </div>
+                        <div class="oe_clear"/>
+                        <div class="oe_horizontal_separator oe_clear ">
+                            API Settings
+                        </div>
+                        <label for="url"/>
+                        <h3><field name="url" colspan="4"/></h3>
+                        <group>
+                            <group>
+                                <label for="api_user"/>
+                                <h3><field name="api_user"/></h3>
+                            </group>
+                            <group>
+                                <label for="api_key"/>
+                                <h3><field name="api_key"/></h3>
+                            </group>
+                            <group>
+                                <label for="order_prefix"/>
+                                <h3><field name="order_prefix"/></h3>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Websites" groups="base.group_user">
+                                <h3>
+                                    <field name="websites"/>
+                                </h3>
+                            </page>
+                            <page string="Order States" groups="base.group_user">
+                                <h3>
+                                    <field name="order_states">
+                                        <form string="Order State" version="7.0">
+                                            <group>
+                                                <group>
+                                                    <label for="name"/>
+                                                    <h3><field name="name"/></h3>
+                                                </group>
+                                                <group>
+                                                    <label for="code"/>
+                                                    <h3><field name="code"/></h3>
+                                                </group>
+                                            </group>
+                                            <group>
+                                                <group>
+                                                    <label for="use_for_import"/>
+                                                    <h3><field name="use_for_import"/></h3>
+                                                </group>
+                                                <group attrs="{'invisible': [('use_for_import', '=', False)]}">
+                                                    <label for="openerp_state"/>
+                                                    <h3><field name="openerp_state" attrs="{'required': [('use_for_import', '=', True)]}"/></h3>
+                                                </group>
+                                            </group>
+                                        </form>
+                                        <!-- Would love to have this as editable="bottom" but openerp's so called beautiful view
+                                             screws up with the attrs being in place -->
+                                        <tree string="Order States">
+                                            <field name="name"/>
+                                            <field name="code"/>
+                                            <field name="use_for_import"/>
+                                            <field name="openerp_state"
+                                                   attrs="{'invisible': [('use_for_import', '=', False)], 'required': [('use_for_import', '=', True)]}"/>
+                                        </tree>
+                                    </field>
+                                </h3>
+                            </page>
+                            <page string="Carriers" groups="base.group_user">
+                                <h3>
+                                    <field name="carriers">
+                                        <form string="Carriers" version="7.0">
+                                            <group>
+                                                <group>
+                                                    <field name="code"/>
+                                                </group>
+                                                <group>
+                                                    <field name="title"/>
+                                                </group>
+                                                <group>
+                                                    <field name="carrier"/>
+                                                </group>
+                                                <group>
+                                                    <field name="instance"/>
+                                                </group>
+                                            </group>
+                                        </form>
+                                        <tree string="Carriers">
+                                            <field name="code"/>
+                                            <field name="title"/>
+                                        </tree>
+                                    </field>
+                                </h3>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="magento_instances" model="ir.actions.act_window">
+            <field name="name">Magento Instances</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">magento.instance</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem action="magento_instances" id="menu_instances"
+            parent="menu_magento_config" sequence="5" groups="base.group_user"/>
+
+        <!-- Website -->
+        <record id="instance_website_tree_view" model="ir.ui.view">
+            <field name="name">magento.instance.website.tree</field>
+            <field name="model">magento.instance.website</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="Instance Website">
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="instance"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="instance_website_form_view" model="ir.ui.view">
+            <field name="name">magento.instance.website.form</field>
+            <field name="model">magento.instance.website</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Website" version="7.0">
+                    <header>
+                        <button name="%(action_magento_import_catalog)d"
+                                type='action' class="oe_highlight" string='Import Catalog'/>
+                        <button name="%(action_magento_update_catalog)d"
+                                type='action' class="oe_highlight" string='Update Catalog'/>
+                        <button name="%(action_magento_export_inventory)d"
+                                type='action' class="oe_highlight" string='Export Inventory'/>
+                        <button name="%(action_magento_export_catalog)d"
+                                type='action' class="oe_highlight" string='Export Catalog'/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <h2>
+                                    <label for="name" string="Name"/>
+                                </h2>
+                            </group>
+                            <group>
+                                <h2>
+                                  <label for="code"/>
+                                </h2>
+                            </group>
+                            <group>
+                                <h1>
+                                    <field name="name"/>
+                                </h1>
+                            </group>
+                            <group>
+                                <h1>
+                                    <field name="code"/>
+                                </h1>
+                            </group>
+                            <group>
+                                <field name="instance"/>
+                                <field name="company"/>
+                                <field name="default_product_uom"/>
+                                <field name="magento_root_category_id"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Stores" groups="base.group_user">
+                                <h3>
+                                    <field name="stores"/>
+                                </h3>
+                            </page>
+                            <page string="Magento Products" groups="base.group_user">
+                                <h3>
+                                    <field name="magento_products">
+                                        <form string="Products" version="7.0">
+                                            <header>
+                                                <button name="update_product_from_magento" 
+                                                    type='action' class="oe_highlight" string="Update from Magento"/>
+                                            </header>
+                                            <group>
+                                                <group>
+                                                    <label for="product"/>
+                                                    <h3><field name="product"/></h3>
+                                                </group>
+                                                <group>
+                                                    <label for="magento_id"/>
+                                                    <h3><field name="magento_id"/></h3>
+                                                </group>
+                                            </group>
+                                        </form>
+                                        <tree string="Products">
+                                            <field name="product"/>
+                                            <field name="magento_id"/>
+                                            <button name="update_product_from_magento" string="Update from Magento"
+                                                type="object" icon="STOCK_REFRESH" />
+                                        </tree>
+                                    </field>
+                                </h3>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="instance_website" model="ir.actions.act_window">
+            <field name="name">Website</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">magento.instance.website</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem action="instance_website" id="menu_websites"
+            parent="menu_magento_config" sequence="10"
+            groups="base.group_user"/>
+
+        <!--Store-->
+        <record id="website_store_tree_view" model="ir.ui.view">
+            <field name="name">magento.website.store.tree</field>
+            <field name="model">magento.website.store</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="Website Store">
+                    <field name="name"/>
+                    <field name="website"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="website_store_form_view" model="ir.ui.view">
+            <field name="name">magento.website.store.form</field>
+            <field name="model">magento.website.store</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Website Store" version="7.0" col="6">
+                    <header>
+                        <button name="%(action_magento_export_tier_prices)d"
+                                type='action' class="oe_highlight" string='Export Tier Prices'/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <h2>
+                                    <label for="name" string="Name"/>
+                                </h2>
+                            </group>
+                            <div class="oe_clear"/>
+                            <group>
+                                <h1>
+                                    <field name="name"/>
+                                </h1>
+                            </group>
+                            <div class="oe_clear"/>
+                            <group>
+                                <label for="website"/>
+                                <h3>
+                                    <field name="website" colspan="2"/>
+                                </h3>
+                            </group>
+                            <group>
+                                <label for="instance"/>
+                                <h3>
+                                    <field name="instance" colspan="2"/>
+                                </h3>
+                            </group>
+                            <group>
+                                <label for="company"/>
+                                <h3>
+                                    <field name="company" colspan="2"/>
+                                </h3>
+                            </group>
+                            <group>
+                                <label for="shop"/>
+                                <h3>
+                                    <field name="shop" colspan="2"/>
+                                </h3>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Store Views" groups="base.group_user">
+                                <h3>
+                                    <field name="store_views" readonly="1"/>
+                                </h3>
+                            </page>
+                            <page string="Price Tiers" groups="base.group_user">
+                                <field name="price_tiers">
+                                    <form string="Price Tier" version="7.0">
+                                        <group>
+                                            <group>
+                                                <label for="quantity"/>
+                                                <h3><field name="quantity"/></h3>
+                                            </group>
+                                        </group>
+                                    </form>
+                                    <tree string="Price Tiers" editable="bottom">
+                                        <field name="quantity"/>
+                                    </tree>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="website_store" model="ir.actions.act_window">
+            <field name="name">Website Store</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">magento.website.store</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem action="website_store" id="menu_stores"
+            parent="menu_magento_config" sequence="15"
+            groups="base.group_user"/>
+
+
+        <!--Store view-->
+        <record id="store_view_tree_view" model="ir.ui.view">
+            <field name="name">magento.store.store_view.tree</field>
+            <field name="model">magento.store.store_view</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="Store View">
+                    <field name="name"/>
+                    <field name="code"/>
+                    <field name="store"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="store_view_form_view" model="ir.ui.view">
+            <field name="name">magento.store.store_view.form</field>
+            <field name="model">magento.store.store_view</field>
+            <field eval="7" name="priority"/>
+            <field name="arch" type="xml">
+                <form string="Store View" version="7.0">
+                    <header>
+                         <button name="%(action_magento_import_orders)d"
+                                 type='action' class="oe_highlight" string='Import Orders'/>
+                        <button name="%(action_magento_export_orders)d"
+                                type='action' class="oe_highlight" string='Export Orders'/>
+                        <button name="%(action_export_shipment_status)d"
+                                type='action' class="oe_highlight" string='Export Shipment Status'/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <h2><label for="name" string="Name"/></h2>
+                            </group>
+                            <group>
+                                <h2><label for="code" string="Code"/></h2>
+                            </group>
+                            <group>
+                                <h1>
+                                  <field name="name"/>
+                                </h1>
+                             </group>
+                             <group>
+                                <h1>
+                                  <field name="code"/>
+                                </h1>
+                            </group>
+                            <group>
+                                <label for="store"/>
+                                <h3><field name="store"/></h3>
+                            </group>
+                            <group>
+                                <label for="instance"/>
+                                <h3><field name="instance"/></h3>
+                            </group>
+                            <group>
+                                <label for="website"/>
+                                <h3><field name="website"/></h3>
+                            </group>
+                            <group>
+                                <label for="company"/>
+                                <h3><field name="company"/></h3>
+                            </group>
+                            <group>
+                                <label for="export_tracking_information"/>
+                                <h3><field name="export_tracking_information"/></h3>
+                            </group>
+                            <newline/>
+                            <p>
+                            Checking this will make sure that only the done
+                            shipments which have a carrier and tracking
+                            reference are exported. This will update carrier
+                            and tracking reference on magento for the exported
+                            shipments as well.
+                            </p>
+                            <newline/>
+                            <separator string="Last Export / Import Time"/>
+                            <newline/>
+                            <group>
+                                <label for="last_order_import_time"/>
+                                <h3><field name="last_order_import_time"/></h3>
+                            </group>
+                            <group>
+                                <label for="last_order_export_time"/>
+                                <h3><field name="last_order_export_time"/></h3>
+                            </group>
+                            <group>
+                                <label for="last_shipment_export_time"/>
+                                <h3><field name="last_shipment_export_time"/></h3>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="store_view" model="ir.actions.act_window">
+            <field name="name">Store View</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">magento.store.store_view</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+        <menuitem action="store_view" id="menu_store_views"
+            parent="menu_magento_config" sequence="20"
+            groups="base.group_user"/>
+
+        <!-- Cron -->
+        <record model="ir.cron" id="ir_cron_get_sale_orders">
+            <field name="name">Import Sales from Magento</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="model" eval="'magento.store.store_view'"/>
+            <field name="function" eval="'import_orders'"/>
+            <field name="args" eval="'()'"/>
+        </record>
+        <record model="ir.cron" id="ir_cron_export_sale_orders">
+            <field name="name">Export Sales Status to Magento</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="model" eval="'magento.store.store_view'"/>
+            <field name="function" eval="'export_orders'"/>
+            <field name="args" eval="'()'"/>
+        </record>
+
+        <record model="ir.cron" id="ir_cron_export_shipment_status">
+            <field name="name">Export Shipment Status</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="model" eval="'magento.store.store_view'"/>
+            <field name="function" eval="'export_shipment_status'"/>
+            <field name="args" eval="'()'"/>
+        </record>
+
+        <record model="ir.cron" id="ir_cron_update_catalog">
+            <field name="name">Update Catalog</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="True"/>
+            <field name="active" eval="False"/>
+            <field name="model" eval="'product.product'"/>
+            <field name="function" eval="'update_catalog'"/>
+            <field name="args" eval="'()'"/>
+        </record>
+
+    </data>
+</openerp>
